@@ -61,36 +61,36 @@ function getHTML(){return`<!DOCTYPE html>
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#0d0d0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Liv">
 <link rel="manifest" href="/manifest.json">
 <title>Liv</title>
 <style>
-html,body{margin:0;padding:0;background:#0d0d0f;font-family:Georgia,serif;color:rgba(255,255,255,.9);}
-#orb{position:fixed;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:0;background:#8878b0;width:340px;height:340px;left:calc(50% - 170px);top:calc(50% - 170px);opacity:0.25;transition:background 2s,opacity 1s;}
+html,body{margin:0;padding:0;background:#0d0d0f;font-family:Georgia,serif;color:rgba(255,255,255,.9);height:100%;}
+#orb{position:fixed;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:0;background:#8878b0;width:300px;height:300px;left:calc(50% - 150px);top:calc(50% - 150px);opacity:0.25;transition:background 2s;}
 #veil{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 50% 50%,rgba(255,255,255,1) 0%,transparent 70%);opacity:0;}
 #header{position:fixed;top:0;left:0;right:0;z-index:5;padding:16px 20px;font-size:11px;opacity:.3;letter-spacing:.12em;display:flex;justify-content:space-between;}
 #ph{font-family:monospace;font-size:9px;}
-#bot{position:fixed;bottom:0;left:0;right:0;z-index:5;background:#0d0d0f;padding:12px 16px 32px;padding-bottom:max(32px,env(safe-area-inset-bottom,32px));}
-#row{display:flex;gap:8px;align-items:flex-end;}
-textarea{flex:1;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;padding:12px 15px;color:rgba(255,255,255,.9);font-size:16px;font-family:-apple-system,sans-serif;resize:none;min-height:46px;max-height:90px;outline:none;line-height:1.4;}
-textarea::placeholder{color:rgba(255,255,255,.35);}
-#btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;padding:12px 18px;color:rgba(255,255,255,.85);font-size:15px;cursor:pointer;min-height:46px;font-family:-apple-system,sans-serif;}
-#btn:disabled{opacity:.3;}
-#msgs{position:fixed;top:50px;bottom:110px;left:0;right:0;overflow-y:auto;padding:20px 32px;display:flex;flex-direction:column;gap:20px;z-index:3;scrollbar-width:none;}
+#msgs{position:fixed;top:48px;left:0;right:0;overflow-y:auto;padding:20px 28px 16px;display:flex;flex-direction:column;gap:20px;z-index:3;scrollbar-width:none;transition:bottom 0.15s ease;}
 #msgs::-webkit-scrollbar{display:none;}
 .ml{text-align:center;}
-.ml .ln{font-size:21px;line-height:1.55;opacity:0;transition:opacity var(--fd,3.2s) ease;}
+.ml .ln{font-size:20px;line-height:1.55;opacity:0;transition:opacity var(--fd,3.2s) ease;}
 .ml .ln.on{opacity:.93;}
 .ml.op .ln{opacity:.93;}
-.ml.op .ln:first-child{font-size:34px;font-weight:600;}
+.ml.op .ln:first-child{font-size:32px;font-weight:600;}
 .ml .ln+.ln{margin-top:4px;}
-.mu{align-self:flex-end;background:rgba(255,255,255,.08);border-radius:14px 14px 3px 14px;padding:9px 14px;font-size:15px;max-width:66%;font-family:-apple-system,sans-serif;opacity:0;transition:opacity .5s;}
+.mu{align-self:flex-end;background:rgba(255,255,255,.08);border-radius:14px 14px 3px 14px;padding:9px 14px;font-size:15px;max-width:70%;font-family:-apple-system,sans-serif;opacity:0;transition:opacity .5s;}
 .mu.on{opacity:.8;}
-#er{position:fixed;bottom:120px;left:16px;right:16px;z-index:6;padding:8px 12px;background:rgba(255,50,50,.15);border:1px solid rgba(255,80,80,.3);border-radius:8px;font-size:11px;font-family:monospace;color:rgba(255,150,150,.9);display:none;word-break:break-all;}
-#st{position:fixed;bottom:112px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.25);font-family:monospace;z-index:4;}
+#bot{position:fixed;left:0;right:0;z-index:5;background:#0d0d0f;padding:10px 16px 10px;transition:bottom 0.15s ease;}
+#row{display:flex;gap:8px;align-items:flex-end;}
+textarea{flex:1;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.18);border-radius:14px;padding:11px 14px;color:rgba(255,255,255,.9);font-size:16px;font-family:-apple-system,sans-serif;resize:none;min-height:44px;max-height:88px;outline:none;line-height:1.4;}
+textarea::placeholder{color:rgba(255,255,255,.3);}
+#btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.18);border-radius:12px;padding:11px 16px;color:rgba(255,255,255,.8);font-size:15px;cursor:pointer;min-height:44px;font-family:-apple-system,sans-serif;white-space:nowrap;}
+#btn:disabled{opacity:.3;}
+#er{position:fixed;left:16px;right:16px;z-index:6;padding:8px 12px;background:rgba(255,50,50,.15);border:1px solid rgba(255,80,80,.3);border-radius:8px;font-size:11px;font-family:monospace;color:rgba(255,150,150,.9);display:none;word-break:break-all;}
+#st{position:fixed;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.25);font-family:monospace;z-index:4;}
 </style>
 </head>
 <body>
@@ -114,11 +114,40 @@ textarea::placeholder{color:rgba(255,255,255,.35);}
 <script>
 var PL=3.8,ls='HALLA',busy=false,hist=[],t0=null,br={ph:'hold_bottom',lum:0};
 var OC={HALLA:'#8878b0',KALLA_TILLBAKA:'#5e8fa8',FORANKRA:'#4a8870',SLAPPA:'#907898'};
-var OS={HALLA:340,KALLA_TILLBAKA:300,FORANKRA:380,SLAPPA:280};
+var OS={HALLA:300,KALLA_TILLBAKA:270,FORANKRA:340,SLAPPA:260};
 var orb=document.getElementById('orb'),veil=document.getElementById('veil'),
     msgs=document.getElementById('msgs'),inp=document.getElementById('inp'),
     btn=document.getElementById('btn'),st=document.getElementById('st'),
-    ph=document.getElementById('ph'),er=document.getElementById('er');
+    ph=document.getElementById('ph'),er=document.getElementById('er'),
+    bot=document.getElementById('bot');
+
+// Layout dynamisk baserat på skärmstorlek
+function setLayout(){
+  var safeBottom=0;
+  if(window.visualViewport){
+    var vv=window.visualViewport;
+    var fromBottom=window.innerHeight-vv.offsetTop-vv.height;
+    var botH=bot.offsetHeight;
+    bot.style.bottom=fromBottom+'px';
+    msgs.style.bottom=(botH+fromBottom+4)+'px';
+    er.style.bottom=(botH+fromBottom+8)+'px';
+    st.style.bottom=(botH+fromBottom+2)+'px';
+  } else {
+    var botH=bot.offsetHeight;
+    bot.style.bottom='0px';
+    msgs.style.bottom=(botH+4)+'px';
+    er.style.bottom=(botH+8)+'px';
+    st.style.bottom=(botH+2)+'px';
+  }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',setLayout);
+  window.visualViewport.addEventListener('scroll',setLayout);
+}
+window.addEventListener('resize',setLayout);
+setTimeout(setLayout,100);
 
 function anim(ts){
   if(!t0)t0=ts;
@@ -135,7 +164,7 @@ function anim(ts){
   else if(p==='hold_top'){sc=1.02;y=-12+drift;op=0.30;}
   else if(p==='exhale'){sc=1.02-ease*0.02;y=-12+ease*12+drift;op=0.30-ease*0.08;}
   else{y=drift*0.4;op=0.22;}
-  var sz=OS[ls]||340;
+  var sz=OS[ls]||300;
   orb.style.background=OC[ls]||'#8878b0';
   orb.style.width=sz+'px';orb.style.height=sz+'px';
   orb.style.left='calc(50% - '+sz/2+'px)';
@@ -180,11 +209,12 @@ async function skicka(){
     var lines=Array.isArray(parsed.lines)&&parsed.lines.length?parsed.lines:['...'];
     hist.push({role:'assistant',content:raw});
     var c=document.createElement('div');c.className='ml';msgs.appendChild(c);
-    fadeLines(c,lines,function(){busy=false;btn.disabled=false;inp.disabled=false;});
+    fadeLines(c,lines,function(){busy=false;btn.disabled=false;inp.disabled=false;setLayout();});
   }catch(e){er.textContent='Fel: '+e.name+' - '+e.message;er.style.display='block';busy=false;btn.disabled=false;inp.disabled=false;st.textContent='';}
 }
-inp.addEventListener('input',function(){inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,90)+'px';});
+inp.addEventListener('input',function(){inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,88)+'px';setTimeout(setLayout,50);});
 inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();skicka();}});
+inp.addEventListener('focus',function(){setTimeout(function(){msgs.scrollTop=msgs.scrollHeight;},300);});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
 </script>
 </body>
@@ -192,4 +222,3 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
 
 const PORT=process.env.PORT||3000;
 app.listen(PORT,()=>console.log('Liv lyssnar på port',PORT));
- 
