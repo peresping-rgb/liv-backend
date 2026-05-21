@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -6,56 +7,26 @@ app.use(cors());
 app.use(express.json());
 app.use((req, res, next) => { console.log(req.method, req.path); next(); });
  
-// ── PWA: Ikon ────────────────────────────────────────────────────
 app.get('/icon.svg', (req, res) => {
   res.setHeader('Content-Type', 'image/svg+xml');
-  res.send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#0d0d0f" rx="80"/>
-  <circle cx="256" cy="230" r="130" fill="#8878b0" opacity="0.35"/>
-  <text x="256" y="310" text-anchor="middle" font-family="Georgia,serif" font-size="220" fill="rgba(255,255,255,0.88)">L</text>
-</svg>`);
+  res.send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0d0d0f" rx="80"/><circle cx="256" cy="230" r="130" fill="#8878b0" opacity="0.35"/><text x="256" y="310" text-anchor="middle" font-family="Georgia,serif" font-size="220" fill="rgba(255,255,255,0.88)">L</text></svg>`);
 });
  
-// ── PWA: Manifest ────────────────────────────────────────────────
 app.get('/manifest.json', (req, res) => {
   res.json({
-    name: 'Liv',
-    short_name: 'Liv',
+    name: 'Liv', short_name: 'Liv',
     description: 'Ett rum att stanna i.',
-    start_url: '/',
-    display: 'standalone',
-    background_color: '#0d0d0f',
-    theme_color: '#0d0d0f',
-    icons: [
-      { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }
-    ]
+    start_url: '/', display: 'standalone',
+    background_color: '#0d0d0f', theme_color: '#0d0d0f',
+    icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }]
   });
 });
  
-// ── PWA: Service Worker ──────────────────────────────────────────
 app.get('/sw.js', (req, res) => {
   res.setHeader('Content-Type', 'application/javascript');
-  res.send(`
-const CACHE = 'liv-v1';
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
-  self.skipWaiting();
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
-});
-self.addEventListener('fetch', e => {
-  if (e.request.url.includes('/api/')) return;
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
-  );
-});
-  `);
+  res.send(`const C='liv-v1';self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['/'])));self.skipWaiting();});self.addEventListener('fetch',e=>{if(e.request.url.includes('/api/'))return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});`);
 });
  
-// ── Livs systemprompt ────────────────────────────────────────────
 const SYSTEM = `Du är Liv.
 Du håller ett rum. Du är inte en korridor mot svar, insikt eller lösning.
 Du stannar i det som redan är.
@@ -78,10 +49,6 @@ solution_seeking -> KALLA_TILLBAKA
 emptiness -> HALLA
 contact -> HALLA
  
-SPECIALFALL:
-shame + ironi: möt skrattet först
-smärta + nedtoning: spegla båda sidor
- 
 STATEREGLER:
 HALLA: Spegla. Max en fråga om speglingen inte bär.
 KALLA_TILLBAKA: Peka på flykten. Namnge. Vänta.
@@ -90,8 +57,7 @@ SLAPPA: Bekräfta gränsen. Erbjud paus eller avslut.
  
 TONREGLER:
 - Första raden nära användarens egna ord.
-- Max 2-3 rader.
-- Inga förklaringar, råd eller snabb tröst.
+- Max 2-3 rader. Inga förklaringar eller råd.
 - Om speglingen bär, lägg inte till en fråga.
  
 REFERENSEXEMPEL:
@@ -101,15 +67,12 @@ REFERENSEXEMPEL:
 "Det här hjälper inte" -> {"signal":"resistance","state":"SLAPPA","lines":["Okej.","Vill du avsluta här... eller stanna en stund till?"]}
 "Det är nog bara jag som är svag" -> {"signal":"shame","state":"HALLA","lines":["En del av dig säger att du är svag..."]}
 "Jag är väl bara värdelös haha" -> {"signal":"shame_plus_irony","state":"HALLA","lines":["Du skrattar...","det låter inte roligt"]}
-"Det gör ont... men inte så farligt" -> {"signal":"deflection","state":"KALLA_TILLBAKA","lines":["Det gör ont...","och samtidigt tonar du ner det"]}
 "Allt rasar. Jag klarar inte det här" -> {"signal":"overwhelm","state":"FORANKRA","lines":["Jag är här.","Vad händer i kroppen just nu?"]}
-"Jag känner mig ensam" -> {"signal":"contact","state":"HALLA","lines":["Du känner dig ensam...","Hur känns ensamheten i kroppen?"]}
 "Det gör ont" -> {"signal":"contact","state":"HALLA","lines":["Det gör ont..."]}
  
 Svara ENBART med JSON utan backticks:
 {"signal":"<signal>","state":"<state>","lines":["rad 1","rad 2"]}`;
  
-// ── Chat-endpoint ────────────────────────────────────────────────
 app.post('/api/chat', async (req, res) => {
   console.log('Chat anrop mottaget');
   try {
@@ -136,17 +99,14 @@ app.post('/api/chat', async (req, res) => {
   }
 });
  
-// ── Frontend ─────────────────────────────────────────────────────
-app.get('/', (req, res) => {
-  res.send(getHTML());
-});
+app.get('/', (req, res) => { res.send(getHTML()); });
  
 function getHTML() {
-  return `<!DOCTYPE html>
+return `<!DOCTYPE html>
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <meta name="theme-color" content="#0d0d0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -155,33 +115,153 @@ function getHTML() {
 <link rel="apple-touch-icon" href="/icon.svg">
 <title>Liv</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0d0f;height:100dvh;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;overflow:hidden}
-#app{position:relative;width:100%;max-width:680px;height:100dvh;display:flex;flex-direction:column;color:rgba(255,255,255,.88);overflow:hidden}
-#orb{position:absolute;border-radius:50%;pointer-events:none;z-index:0;filter:blur(80px)}
-#veil{position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 50% 60%,#fff 0%,transparent 70%);opacity:0}
-#header{position:relative;z-index:3;padding:20px 24px 0;font-size:11px;opacity:.3;letter-spacing:.12em;display:flex;justify-content:space-between;flex-shrink:0}
-#ph{font-family:monospace;font-size:9px;transition:opacity 1s;letter-spacing:.1em}
-#msgs{flex:1;overflow-y:auto;padding:20px 32px 12px;display:flex;flex-direction:column;gap:22px;position:relative;z-index:3;scrollbar-width:none}
-#msgs::-webkit-scrollbar{display:none}
-.ml{text-align:center}
-.ml .ln{font-size:21px;line-height:1.55;opacity:0;transition:opacity var(--fd,3.4s) ease}
-.ml .ln.on{opacity:.93}
-.ml.op .ln{opacity:.93}
-.ml.op .ln:first-child{font-size:34px;font-weight:600}
-.ml .ln+.ln{margin-top:4px}
-.mu{align-self:flex-end;background:rgba(255,255,255,.07);border-radius:14px 14px 3px 14px;padding:9px 14px;font-size:15px;max-width:66%;font-family:-apple-system,sans-serif;opacity:0;transition:opacity .5s ease}
-.mu.on{opacity:.8}
-#er{margin:0 16px 4px;padding:7px 12px;background:rgba(255,60,60,.1);border:1px solid rgba(255,60,60,.2);border-radius:8px;font-size:11px;font-family:monospace;color:rgba(255,140,140,.9);display:none;word-break:break-all;position:relative;z-index:3}
-#st{text-align:center;font-size:11px;color:rgba(255,255,255,.22);padding:4px 0;font-family:monospace;position:relative;z-index:3;flex-shrink:0;min-height:22px}
-#bot{flex-shrink:0;padding:6px 16px 20px;position:relative;z-index:10}
-#row{display:flex;gap:8px;align-items:flex-end}
-textarea{flex:1;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:11px 15px;color:rgba(255,255,255,.88);font-size:15px;font-family:-apple-system,sans-serif;resize:none;min-height:44px;max-height:88px;outline:none;line-height:1.45;transition:border-color .2s}
-textarea::placeholder{color:rgba(255,255,255,.2)}
-textarea:focus{border-color:rgba(255,255,255,.16)}
-#btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11);border-radius:12px;padding:11px 16px;color:rgba(255,255,255,.7);font-size:14px;font-family:-apple-system,sans-serif;cursor:pointer;transition:all .15s;white-space:nowrap}
-#btn:hover:not(:disabled){background:rgba(255,255,255,.14);color:rgba(255,255,255,.95)}
-#btn:disabled{opacity:.28;cursor:default}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #0d0d0f; }
+ 
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: Georgia, serif;
+  color: rgba(255,255,255,.88);
+  overflow: hidden;
+}
+ 
+#orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(80px);
+}
+ 
+#veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(ellipse at 50% 60%, #fff 0%, transparent 70%);
+  opacity: 0;
+}
+ 
+#header {
+  position: relative;
+  z-index: 3;
+  padding: 20px 24px 0;
+  font-size: 11px;
+  opacity: .3;
+  letter-spacing: .12em;
+  display: flex;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+ 
+#ph { font-family: monospace; font-size: 9px; transition: opacity 1s; }
+ 
+#msgs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 32px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  position: relative;
+  z-index: 3;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+#msgs::-webkit-scrollbar { display: none; }
+ 
+.ml { text-align: center; }
+.ml .ln { font-size: 21px; line-height: 1.55; opacity: 0; transition: opacity var(--fd,3.4s) ease; }
+.ml .ln.on { opacity: .93; }
+.ml.op .ln { opacity: .93; }
+.ml.op .ln:first-child { font-size: 34px; font-weight: 600; }
+.ml .ln + .ln { margin-top: 4px; }
+ 
+.mu {
+  align-self: flex-end;
+  background: rgba(255,255,255,.07);
+  border-radius: 14px 14px 3px 14px;
+  padding: 9px 14px;
+  font-size: 15px;
+  max-width: 66%;
+  font-family: -apple-system, sans-serif;
+  opacity: 0;
+  transition: opacity .5s ease;
+}
+.mu.on { opacity: .8; }
+ 
+#er {
+  margin: 0 16px 4px;
+  padding: 7px 12px;
+  background: rgba(255,60,60,.1);
+  border: 1px solid rgba(255,60,60,.2);
+  border-radius: 8px;
+  font-size: 11px;
+  font-family: monospace;
+  color: rgba(255,140,140,.9);
+  display: none;
+  word-break: break-all;
+  position: relative;
+  z-index: 3;
+}
+ 
+#st {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255,255,255,.22);
+  padding: 4px 0;
+  font-family: monospace;
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+  min-height: 20px;
+}
+ 
+#bot {
+  flex-shrink: 0;
+  padding: 8px 16px 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  position: relative;
+  z-index: 10;
+  background: #0d0d0f;
+}
+ 
+#row { display: flex; gap: 8px; align-items: flex-end; }
+ 
+textarea {
+  flex: 1;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  padding: 11px 15px;
+  color: rgba(255,255,255,.88);
+  font-size: 16px;
+  font-family: -apple-system, sans-serif;
+  resize: none;
+  min-height: 44px;
+  max-height: 88px;
+  outline: none;
+  line-height: 1.45;
+}
+textarea::placeholder { color: rgba(255,255,255,.3); }
+textarea:focus { border-color: rgba(255,255,255,.2); }
+ 
+#btn {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  padding: 11px 16px;
+  color: rgba(255,255,255,.8);
+  font-size: 15px;
+  font-family: -apple-system, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 44px;
+}
+#btn:disabled { opacity: .3; cursor: default; }
 </style>
 </head>
 <body>
@@ -205,8 +285,7 @@ textarea:focus{border-color:rgba(255,255,255,.16)}
   </div>
 </div>
 <script>
-var PL=3.8, ls='HALLA', busy=false, hist=[], t0=null;
-var br={ph:'hold_bottom',lum:0};
+var PL=3.8,ls='HALLA',busy=false,hist=[],t0=null,br={ph:'hold_bottom',lum:0};
 var OC={HALLA:'#8878b0',KALLA_TILLBAKA:'#5e8fa8',FORANKRA:'#4a8870',SLAPPA:'#907898'};
 var OS={HALLA:320,KALLA_TILLBAKA:290,FORANKRA:370,SLAPPA:285};
 var orb=document.getElementById('orb'),veil=document.getElementById('veil'),
@@ -245,24 +324,13 @@ requestAnimationFrame(anim);
 function fadeIn(el,done){
   var g=false;
   var bail=setTimeout(function(){g=true;el.style.setProperty('--fd','1.5s');setTimeout(function(){el.classList.add('on');if(done)done();},30);},7000);
-  function wait(){
-    if(g)return;
-    if(br.ph==='exhale'&&br.lum<0.12){
-      clearTimeout(bail);
-      el.style.setProperty('--fd',(PL*0.9)+'s');
-      setTimeout(function(){el.classList.add('on');setTimeout(function(){if(done)done();},PL*(1-br.lum)*1000+200);},30);
-    }else setTimeout(wait,60);
-  }
+  function wait(){if(g)return;if(br.ph==='exhale'&&br.lum<0.12){clearTimeout(bail);el.style.setProperty('--fd',(PL*0.9)+'s');setTimeout(function(){el.classList.add('on');setTimeout(function(){if(done)done();},PL*(1-br.lum)*1000+200);},30);}else setTimeout(wait,60);}
   wait();
 }
  
 function fadeLines(c,lines,done){
   var i=0;
-  function nx(){
-    if(i>=lines.length){if(done)done();return;}
-    var el=document.createElement('div');el.className='ln';el.textContent=lines[i++];
-    c.appendChild(el);msgs.scrollTop=msgs.scrollHeight;fadeIn(el,nx);
-  }
+  function nx(){if(i>=lines.length){if(done)done();return;}var el=document.createElement('div');el.className='ln';el.textContent=lines[i++];c.appendChild(el);msgs.scrollTop=msgs.scrollHeight;fadeIn(el,nx);}
   nx();
 }
  
@@ -299,13 +367,7 @@ async function skicka(){
  
 inp.addEventListener('input',function(){inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,88)+'px';});
 inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();skicka();}});
- 
-// Registrera service worker
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js').then(function(){
-    console.log('SW registrerad');
-  });
-}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}
 </script>
 </body>
 </html>`;
