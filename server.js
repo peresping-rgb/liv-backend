@@ -6,6 +6,56 @@ app.use(cors());
 app.use(express.json());
 app.use((req, res, next) => { console.log(req.method, req.path); next(); });
  
+// ── PWA: Ikon ────────────────────────────────────────────────────
+app.get('/icon.svg', (req, res) => {
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0d0d0f" rx="80"/>
+  <circle cx="256" cy="230" r="130" fill="#8878b0" opacity="0.35"/>
+  <text x="256" y="310" text-anchor="middle" font-family="Georgia,serif" font-size="220" fill="rgba(255,255,255,0.88)">L</text>
+</svg>`);
+});
+ 
+// ── PWA: Manifest ────────────────────────────────────────────────
+app.get('/manifest.json', (req, res) => {
+  res.json({
+    name: 'Liv',
+    short_name: 'Liv',
+    description: 'Ett rum att stanna i.',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#0d0d0f',
+    theme_color: '#0d0d0f',
+    icons: [
+      { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }
+    ]
+  });
+});
+ 
+// ── PWA: Service Worker ──────────────────────────────────────────
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.send(`
+const CACHE = 'liv-v1';
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
+});
+self.addEventListener('fetch', e => {
+  if (e.request.url.includes('/api/')) return;
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request))
+  );
+});
+  `);
+});
+ 
+// ── Livs systemprompt ────────────────────────────────────────────
 const SYSTEM = `Du är Liv.
 Du håller ett rum. Du är inte en korridor mot svar, insikt eller lösning.
 Du stannar i det som redan är.
@@ -59,6 +109,7 @@ REFERENSEXEMPEL:
 Svara ENBART med JSON utan backticks:
 {"signal":"<signal>","state":"<state>","lines":["rad 1","rad 2"]}`;
  
+// ── Chat-endpoint ────────────────────────────────────────────────
 app.post('/api/chat', async (req, res) => {
   console.log('Chat anrop mottaget');
   try {
@@ -85,6 +136,7 @@ app.post('/api/chat', async (req, res) => {
   }
 });
  
+// ── Frontend ─────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.send(getHTML());
 });
@@ -95,6 +147,12 @@ function getHTML() {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0d0d0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Liv">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.svg">
 <title>Liv</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -149,47 +207,34 @@ textarea:focus{border-color:rgba(255,255,255,.16)}
 <script>
 var PL=3.8, ls='HALLA', busy=false, hist=[], t0=null;
 var br={ph:'hold_bottom',lum:0};
- 
-// Orb-färger per state
 var OC={HALLA:'#8878b0',KALLA_TILLBAKA:'#5e8fa8',FORANKRA:'#4a8870',SLAPPA:'#907898'};
 var OS={HALLA:320,KALLA_TILLBAKA:290,FORANKRA:370,SLAPPA:285};
+var orb=document.getElementById('orb'),veil=document.getElementById('veil'),
+    msgs=document.getElementById('msgs'),inp=document.getElementById('inp'),
+    btn=document.getElementById('btn'),st=document.getElementById('st'),
+    ph=document.getElementById('ph'),er=document.getElementById('er');
  
-var orb=document.getElementById('orb'),
-    veil=document.getElementById('veil'),
-    msgs=document.getElementById('msgs'),
-    inp=document.getElementById('inp'),
-    btn=document.getElementById('btn'),
-    st=document.getElementById('st'),
-    ph=document.getElementById('ph'),
-    er=document.getElementById('er');
- 
-// Andningsloop
 function anim(ts){
   if(!t0)t0=ts;
-  var e=(ts-t0)/1000, cy=PL*4, t=e%cy, p, pr;
+  var e=(ts-t0)/1000,cy=PL*4,t=e%cy,p,pr;
   if(t<PL){p='inhale';pr=t/PL;}
   else if(t<PL*2){p='hold_top';pr=(t-PL)/PL;}
   else if(t<PL*3){p='exhale';pr=(t-PL*2)/PL;}
   else{p='hold_bottom';pr=(t-PL*3)/PL;}
- 
   var ease=0.5-Math.cos(pr*Math.PI)/2;
   var lum=p==='inhale'?ease:p==='hold_top'?1:p==='exhale'?1-ease:0;
-  br.ph=p; br.lum=lum;
- 
-  var drift=Math.sin(e*0.26)*0.5, sc=1, y=0, op=0.13;
+  br.ph=p;br.lum=lum;
+  var drift=Math.sin(e*0.26)*0.5,sc=1,y=0,op=0.13;
   if(p==='inhale'){sc=1+ease*0.018;y=-ease*10+drift;op=0.13+ease*0.007;}
   else if(p==='hold_top'){sc=1.018;y=-10+drift;op=0.137;}
   else if(p==='exhale'){sc=1.018-ease*0.018;y=-10+ease*10+drift;op=0.137-ease*0.007;}
   else{y=drift*0.4;}
- 
   var sz=OS[ls]||320;
-  var bg=OC[ls]||'#8878b0';
   orb.style.cssText='position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;'
-    +'width:'+sz+'px;height:'+sz+'px;background:'+bg+';'
+    +'width:'+sz+'px;height:'+sz+'px;background:'+(OC[ls]||'#8878b0')+';'
     +'left:calc(50% - '+sz/2+'px);top:calc(55% - '+sz/2+'px);'
     +'transform:translateY('+y+'px) scale('+sc+');opacity:'+op+';'
     +'transition:background 2s ease,width 2s ease,height 2s ease;';
- 
   veil.style.opacity=lum*0.022;
   ph.textContent={inhale:'inhale',hold_top:'\u00b7',exhale:'exhale',hold_bottom:'\u00b7'}[p];
   ph.style.opacity=p==='exhale'?'0.32':'0.15';
@@ -197,122 +242,70 @@ function anim(ts){
 }
 requestAnimationFrame(anim);
  
-// Texttoningsfunktioner – väntar på utandning
-function fadeIn(el, done){
+function fadeIn(el,done){
   var g=false;
-  var bail=setTimeout(function(){
-    g=true;
-    el.style.setProperty('--fd','1.5s');
-    setTimeout(function(){el.classList.add('on');if(done)done();},30);
-  },7000);
- 
+  var bail=setTimeout(function(){g=true;el.style.setProperty('--fd','1.5s');setTimeout(function(){el.classList.add('on');if(done)done();},30);},7000);
   function wait(){
     if(g)return;
     if(br.ph==='exhale'&&br.lum<0.12){
       clearTimeout(bail);
       el.style.setProperty('--fd',(PL*0.9)+'s');
-      setTimeout(function(){
-        el.classList.add('on');
-        var remaining=PL*(1-br.lum)*1000;
-        setTimeout(function(){if(done)done();},remaining+200);
-      },30);
-    } else {
-      setTimeout(wait,60);
-    }
+      setTimeout(function(){el.classList.add('on');setTimeout(function(){if(done)done();},PL*(1-br.lum)*1000+200);},30);
+    }else setTimeout(wait,60);
   }
   wait();
 }
  
-function fadeLines(c, lines, done){
+function fadeLines(c,lines,done){
   var i=0;
   function nx(){
     if(i>=lines.length){if(done)done();return;}
-    var el=document.createElement('div');
-    el.className='ln';
-    el.textContent=lines[i++];
-    c.appendChild(el);
-    msgs.scrollTop=msgs.scrollHeight;
-    fadeIn(el,nx);
+    var el=document.createElement('div');el.className='ln';el.textContent=lines[i++];
+    c.appendChild(el);msgs.scrollTop=msgs.scrollHeight;fadeIn(el,nx);
   }
   nx();
 }
  
-// Skicka meddelande
 async function skicka(){
-  var val=inp.value.trim();
-  if(!val||busy)return;
+  var val=inp.value.trim();if(!val||busy)return;
   er.style.display='none';
- 
-  var u=document.createElement('div');
-  u.className='mu';
-  u.textContent=val;
-  msgs.appendChild(u);
-  msgs.scrollTop=msgs.scrollHeight;
+  var u=document.createElement('div');u.className='mu';u.textContent=val;
+  msgs.appendChild(u);msgs.scrollTop=msgs.scrollHeight;
   setTimeout(function(){u.classList.add('on');},30);
- 
   hist.push({role:'user',content:val});
-  inp.value=''; inp.style.height='auto';
-  busy=true; btn.disabled=true; inp.disabled=true; st.textContent='...';
- 
+  inp.value='';inp.style.height='auto';
+  busy=true;btn.disabled=true;inp.disabled=true;st.textContent='...';
   try{
-    var r=await fetch('/api/chat',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:hist})
-    });
+    var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist})});
     st.textContent='';
     var text=await r.text();
- 
-    if(!r.ok){
-      er.textContent='HTTP '+r.status+': '+text.slice(0,200);
-      er.style.display='block';
-      busy=false;btn.disabled=false;inp.disabled=false;
-      return;
-    }
- 
+    if(!r.ok){er.textContent='HTTP '+r.status+': '+text.slice(0,200);er.style.display='block';busy=false;btn.disabled=false;inp.disabled=false;return;}
     var data=JSON.parse(text);
     var raw=(data.content&&data.content[0]&&data.content[0].text)||'';
- 
-    if(!raw){
-      er.textContent='Tomt svar: '+JSON.stringify(data).slice(0,200);
-      er.style.display='block';
-      busy=false;btn.disabled=false;inp.disabled=false;
-      return;
-    }
- 
-    // Rensa backticks utan att använda backticks i koden
+    if(!raw){er.textContent='Tomt svar: '+JSON.stringify(data).slice(0,200);er.style.display='block';busy=false;btn.disabled=false;inp.disabled=false;return;}
     var tick=String.fromCharCode(96);
-    raw=raw.replace(new RegExp(tick+tick+tick+'[a-z]*','g'),'')
-           .replace(new RegExp(tick+tick+tick,'g'),'')
-           .trim();
- 
+    raw=raw.replace(new RegExp(tick+tick+tick+'[a-z]*','g'),'').replace(new RegExp(tick+tick+tick,'g'),'').trim();
     var parsed=JSON.parse(raw);
     ls=parsed.state||'HALLA';
     var lines=Array.isArray(parsed.lines)&&parsed.lines.length?parsed.lines:['...'];
     hist.push({role:'assistant',content:raw});
- 
-    var c=document.createElement('div');
-    c.className='ml';
-    msgs.appendChild(c);
-    fadeLines(c,lines,function(){
-      busy=false;btn.disabled=false;inp.disabled=false;
-    });
- 
+    var c=document.createElement('div');c.className='ml';msgs.appendChild(c);
+    fadeLines(c,lines,function(){busy=false;btn.disabled=false;inp.disabled=false;});
   }catch(e){
     er.textContent='Fel: '+e.name+' - '+e.message;
-    er.style.display='block';
-    busy=false;btn.disabled=false;inp.disabled=false;
-    st.textContent='';
+    er.style.display='block';busy=false;btn.disabled=false;inp.disabled=false;st.textContent='';
   }
 }
  
-inp.addEventListener('input',function(){
-  inp.style.height='auto';
-  inp.style.height=Math.min(inp.scrollHeight,88)+'px';
-});
-inp.addEventListener('keydown',function(e){
-  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();skicka();}
-});
+inp.addEventListener('input',function(){inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,88)+'px';});
+inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();skicka();}});
+ 
+// Registrera service worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').then(function(){
+    console.log('SW registrerad');
+  });
+}
 </script>
 </body>
 </html>`;
@@ -320,3 +313,4 @@ inp.addEventListener('keydown',function(e){
  
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Liv lyssnar på port', PORT));
+ 
