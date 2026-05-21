@@ -156,8 +156,8 @@ function getHTML() {
 <title>Liv</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0d0f;height:100vh;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;overflow:hidden}
-#app{position:relative;width:100%;max-width:680px;height:100vh;display:flex;flex-direction:column;color:rgba(255,255,255,.88);overflow:hidden}
+body{background:#0d0d0f;height:100dvh;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;overflow:hidden}
+#app{position:relative;width:100%;max-width:680px;height:100dvh;display:flex;flex-direction:column;color:rgba(255,255,255,.88);overflow:hidden}
 #orb{position:absolute;border-radius:50%;pointer-events:none;z-index:0;filter:blur(80px)}
 #veil{position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 50% 60%,#fff 0%,transparent 70%);opacity:0}
 #header{position:relative;z-index:3;padding:20px 24px 0;font-size:11px;opacity:.3;letter-spacing:.12em;display:flex;justify-content:space-between;flex-shrink:0}
